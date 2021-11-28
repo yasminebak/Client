@@ -1,3 +1,4 @@
+package Client;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
@@ -11,6 +12,11 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Map.Entry;
 
+import Common.IEmploye;
+import Common.IIfShare;
+import Common.IManageEmployes;
+import Common.IProduct;
+
 public class MainClient {
 	
 	static private Map<IEmploye, List<IProduct>> buyMap;
@@ -19,32 +25,36 @@ public class MainClient {
 	static private List<IProduct> listProSell;
 	static private IEmploye employee = null;
 	static private int loginAttempt = 3;
+	static private IManageEmployes employeManager;
 	
 	public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, Exception {
-		
-		buyMap = new HashMap<IEmploye, List<IProduct>>();
+
 		listPro = new ArrayList<IProduct>();
 		sellMap = new HashMap<IEmploye, List<IProduct>>();
 		listProSell = new ArrayList<IProduct>();
+		employeManager = new ManageEmploye();
 		
-		// connection to Employee service
-		String ip = Inet4Address.getLocalHost().getHostAddress();
-		if (ip == null || ip == "") {
-			ip = "localhost";
-		}
-		Registry r = LocateRegistry.getRegistry(ip, 1708);
-		IManageEmployes employeeManager = (IManageEmployes) r.lookup("//" + ip + "/EmployeeService");
-		
+		employeManager.addEmploye(123, "password123", "user1", "firstname1");
+		employeManager.addEmploye(234, "password145", "user2", "firstname2");
+		employeManager.addEmploye(356, "password465", "user3", "firstname3");
+		employeManager.addEmploye(843, "password656", "user5", "firstname5");
+		employeManager.addEmploye(2135, "password644", "user4", "firstname4");
+				
 		// login
 		IEmploye employee;
 		try {
-			employee = login(employeeManager);
+			employee = login();
 			if (employee == null) {
 				System.out.println("Sorry! You have reached the maximum of tries");
 			} else {
 				System.out.println("You successfuly logged in");
-				
+				System.out.println(employee.getFirstname() + " "+ employee.getLastname() + " " + employee.getId() + " " + employee.getBuyMap());
+				buyMap = employee.getBuyMap();
 				// connection to IfShare service
+				String ip = Inet4Address.getLocalHost().getHostAddress();
+				if (ip == null || ip == "") {
+					ip = "localhost";
+				}
 				Registry r2 = LocateRegistry.getRegistry(ip, 1709);
 				IIfShare service = (IIfShare) r2.lookup("//" + ip + "/IFShareService");	
 				
@@ -68,7 +78,7 @@ public class MainClient {
 				// Option menu
 				optionMenu("buy", service, products);
 			    
-			    
+			    buyMap = employee.getBuyMap();
 			    // the client's products he bought
 				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 				for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
@@ -115,13 +125,10 @@ public class MainClient {
 		} catch (RemoteException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
-		
-		
-		
+		}		
 	}
 	
-	public static IEmploye login(IManageEmployes employeeManager) throws RemoteException {
+	public static IEmploye login() throws RemoteException {
 		while(loginAttempt !=0 && employee == null) {
 			System.out.println("Please enter your ID : ");
 			Scanner scanner = new Scanner(System.in) ;
@@ -129,7 +136,7 @@ public class MainClient {
 			System.out.println("Please enter your password : ");
 			scanner = new Scanner(System.in);
 			String password = scanner.nextLine();
-			employee = employeeManager.login(idClient, password);
+			employee = employeManager.login(idClient, password);
 			loginAttempt--;
 			if (employee == null) {
 				System.out.println("Wrong id or password, you have " + loginAttempt + " more tries");
@@ -182,16 +189,24 @@ public class MainClient {
 		boolean b = false;
 		
 		for(IProduct p : products) {
-			if(p.getId().contains(result)) {
-				if (buyMap.containsKey(employee)) {
-					buyMap.get(employee).add(p);
-				} else {
-					listPro.add(p);
-					buyMap.put(employee, listPro);
-				}
+			if (buyMap.isEmpty()) {
+				listPro.add(p);
+				buyMap.put(employee, listPro);
 				System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
 				b = true;
+			} else {
+				if(p.getId().contains(result)) {
+					if (buyMap.containsKey(employee)) {
+						buyMap.get(employee).add(p);
+					} else {
+						listPro.add(p);
+						buyMap.put(employee, listPro);
+					}
+					System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
+					b = true;
+				}
 			}
+			
 		}
 		if(!b) System.out.println(result);
 	}
