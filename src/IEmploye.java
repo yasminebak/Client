@@ -13,4 +13,6 @@ public interface IEmploye extends Remote {
 
 	public boolean verifIdentity(String password) throws RemoteException;
 	
+	public void notifyEmployee(String idProduct) throws RemoteException;
+	
 }

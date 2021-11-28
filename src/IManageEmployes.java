@@ -15,5 +15,5 @@ public interface IManageEmployes extends Remote {
 
 	public IEmploye getEmploye(int id) throws RemoteException;
 	
-	public boolean login(int id, String password) throws RemoteException;
+	public IEmploye login(int id, String password) throws RemoteException;
 }

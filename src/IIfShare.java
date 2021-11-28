@@ -1,6 +1,8 @@
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public interface IIfShare extends Remote {
 	public IProduct getProduct(String id) throws RemoteException;
@@ -18,7 +20,9 @@ public interface IIfShare extends Remote {
 	//getAvailableproduct c'est les produit disponibles achetable
 	public List<IProduct> getAvailableProduct() throws RemoteException;
 	
-	public String buyProduct(String type, String nameProduct, int id) throws RemoteException;
+	public String buyProduct(String type, String nameProduct, IEmploye employee) throws RemoteException;
+	
+	public void setFifo() throws RemoteException;
 	
 	/*
 	public void setAvailableProduct(String id, boolean bool) throws RemoteException;

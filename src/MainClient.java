@@ -13,18 +13,18 @@ import java.util.Map.Entry;
 
 public class MainClient {
 	
-	static private Map<Integer, List<IProduct>> buyMap;
+	static private Map<IEmploye, List<IProduct>> buyMap;
 	static private List<IProduct> listPro;
-	static private Map<Integer, List<IProduct>> sellMap;
+	static private Map<IEmploye, List<IProduct>> sellMap;
 	static private List<IProduct> listProSell;
-	static private int idClient;
+	static private IEmploye employee = null;
 	static private int loginAttempt = 3;
 	
 	public static void main(String[] args) throws RemoteException, NotBoundException, UnknownHostException, Exception {
 		
-		buyMap = new HashMap<Integer, List<IProduct>>();
+		buyMap = new HashMap<IEmploye, List<IProduct>>();
 		listPro = new ArrayList<IProduct>();
-		sellMap = new HashMap<Integer, List<IProduct>>();
+		sellMap = new HashMap<IEmploye, List<IProduct>>();
 		listProSell = new ArrayList<IProduct>();
 		
 		// connection to Employee service
@@ -36,10 +36,10 @@ public class MainClient {
 		IManageEmployes employeeManager = (IManageEmployes) r.lookup("//" + ip + "/EmployeeService");
 		
 		// login
-		boolean b;
+		IEmploye employee;
 		try {
-			b = login(employeeManager);
-			if (!b) {
+			employee = login(employeeManager);
+			if (employee == null) {
 				System.out.println("Sorry! You have reached the maximum of tries");
 			} else {
 				System.out.println("You successfuly logged in");
@@ -71,42 +71,45 @@ public class MainClient {
 			    
 			    // the client's products he bought
 				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-				for(Entry<Integer, List<IProduct>> e : buyMap.entrySet()) {
-					Integer key = e.getKey();
+				for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
+					IEmploye key = e.getKey();
 					List<IProduct> lp =e.getValue();
 					for(IProduct p : lp)
 					{
-						System.out.println("key: " + key + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
+						System.out.println("key: " + key.getId() + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
 					}
 				}
 				
 				System.out.println("/////////////////////////////");
 				sellProduct();
 				// Option menu
+				// TODO offer the option only when the buyMap is not empty
 				optionMenu("sell", service, products);
 				
 				
 				// the client's sold product list
 				System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-				for(Entry<Integer, List<IProduct>> e : sellMap.entrySet()) {
-					Integer key = e.getKey();
+				for(Entry<IEmploye, List<IProduct>> e : sellMap.entrySet()) {
+					IEmploye key = e.getKey();
 					List<IProduct> lp =e.getValue();
 					for(IProduct p : lp)
 					{
-						System.out.println("idClient: " + key + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable() + " Note: " + p.getNote() + " State: " + p.getState());
+						System.out.println("idClient: " + key.getId() + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable() + " Note: " + p.getNote() + " State: " + p.getState());
 					}
 				}
 				
 				// the client's bought product list
 				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-				for(Entry<Integer, List<IProduct>> e : buyMap.entrySet()) {
-					Integer key = e.getKey();
+				for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
+					IEmploye key = e.getKey();
 					List<IProduct> lp =e.getValue();
 					for(IProduct p : lp)
 					{
-						System.out.println("key: " + key + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
+						System.out.println("key: " + key.getId() + " Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
 					}
 				}
+				
+				service.setFifo();
 			}
 			
 		} catch (RemoteException e1) {
@@ -118,22 +121,21 @@ public class MainClient {
 		
 	}
 	
-	public static boolean login(IManageEmployes employeeManager) throws RemoteException {
-		boolean b = false;
-		while(loginAttempt !=0 && !b) {
+	public static IEmploye login(IManageEmployes employeeManager) throws RemoteException {
+		while(loginAttempt !=0 && employee == null) {
 			System.out.println("Please enter your ID : ");
 			Scanner scanner = new Scanner(System.in) ;
-			idClient = scanner.nextInt();
+			int idClient = scanner.nextInt();
 			System.out.println("Please enter your password : ");
 			scanner = new Scanner(System.in);
 			String password = scanner.nextLine();
-			b = employeeManager.login(idClient, password);
+			employee = employeeManager.login(idClient, password);
 			loginAttempt--;
-			if (!b) {
+			if (employee == null) {
 				System.out.println("Wrong id or password, you have " + loginAttempt + " more tries");
 			}
 		}
-		return b;
+		return employee;
 	}
 	
 	public static void optionMenu(String action, IIfShare service, List<IProduct> products) throws RemoteException{
@@ -171,21 +173,21 @@ public class MainClient {
 		System.out.println("Please state the name of the product : ");
 		scanner = new Scanner(System.in) ;
 		nameProduct = scanner.nextLine();
-		buyProduct(type, nameProduct, idClient, service, products);
+		buyProduct(type, nameProduct, service, products);
 	}
 	
-	public static void buyProduct(String type, String productName, int idClient, IIfShare service, List<IProduct> products) throws RemoteException {
+	public static void buyProduct(String type, String productName, IIfShare service, List<IProduct> products) throws RemoteException {
 		
-		String result = service.buyProduct(type, productName, idClient);
+		String result = service.buyProduct(type, productName, employee);
 		boolean b = false;
 		
 		for(IProduct p : products) {
 			if(p.getId().contains(result)) {
-				if (buyMap.containsKey(idClient)) {
-					buyMap.get(idClient).add(p);
+				if (buyMap.containsKey(employee)) {
+					buyMap.get(employee).add(p);
 				} else {
 					listPro.add(p);
-					buyMap.put(idClient, listPro);
+					buyMap.put(employee, listPro);
 				}
 				System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
 				b = true;
@@ -206,19 +208,19 @@ public class MainClient {
 		Scanner scState = new Scanner(System.in);
 		String state = scState.nextLine();
 		
-		for(Entry<Integer, List<IProduct>> e : buyMap.entrySet()) {
-			Integer idClient = e.getKey();
+		for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
+			IEmploye employee = e.getKey();
 			List<IProduct> lp =e.getValue();
 			for(IProduct p : lp) {
 				if(p.getId().contains(idProduct)) {
 					p.setState(state);
 					p.setNote(note);
 					p.setAvailable(true);
-					if (sellMap.containsKey(idClient)) {
-						sellMap.get(idClient).add(p);
+					if (sellMap.containsKey(employee)) {
+						sellMap.get(employee).add(p);
 					} else {
 						listProSell.add(p);
-						sellMap.put(idClient, listProSell);
+						sellMap.put(employee, listProSell);
 					}
 				}
 			}
@@ -226,11 +228,11 @@ public class MainClient {
 		
 		// remove the sold product from the client's list
 		// /!\ had to do it like this because I had a problem when removing the product in the for loop before (problem: concurrence)
-		for(Entry<Integer, List<IProduct>> e : sellMap.entrySet()) {
-			Integer idClient = e.getKey();
+		for(Entry<IEmploye, List<IProduct>> e : sellMap.entrySet()) {
+			IEmploye employee = e.getKey();
 			List<IProduct> lp =e.getValue();
 			for(IProduct p : lp) {
-				buyMap.get(idClient).remove(p);
+				buyMap.get(employee).remove(p);
 			}
 		}
 	}
