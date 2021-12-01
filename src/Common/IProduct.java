@@ -27,4 +27,8 @@ public interface IProduct extends Remote {
 	
 	public void setAvailable(boolean bool) throws RemoteException;
 	
+	public boolean getIsSold() throws RemoteException;
+
+	public void setIsSold(boolean isSold) throws RemoteException;
+	
 }

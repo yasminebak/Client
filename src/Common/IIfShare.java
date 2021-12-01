@@ -21,9 +21,11 @@ public interface IIfShare extends Remote {
 	//getAvailableproduct c'est les produit disponibles achetable
 	public List<IProduct> getAvailableProduct() throws RemoteException;
 	
-	public String buyProduct(String type, String nameProduct, IEmploye employee) throws RemoteException;
+	public String buyProduct(String id, IEmploye employee) throws RemoteException;
 	
 	public void setFifo() throws RemoteException;
+	
+	public IProduct sellProduct(String id, float note, String state, float price) throws RemoteException;
 	
 	/*
 	public void setAvailableProduct(String id, boolean bool) throws RemoteException;
