@@ -9,6 +9,8 @@ public interface IIfShare extends Remote {
 	public IProduct getProduct(String id) throws RemoteException;
 
 	public List<IProduct> getAllProduct() throws RemoteException;
+	
+	public List<IProduct> getSoldProduct() throws RemoteException;
 
 	public void addProduct(String type, String nameProduct, float price) throws RemoteException;
 

@@ -44,7 +44,7 @@ public class MainClient {
 				System.out.println("Sorry! You have reached the maximum of tries");
 			} else {
 				System.out.println("You successfuly logged in");
-				System.out.println(employee.getFirstname() + " "+ employee.getLastname() + " " + employee.getId() + " " + employee.getBuyMap());
+				System.out.println("Welcome " + employee.getFirstname() + " "+ employee.getLastname() + "\n");
 				buyMap = employee.getBuyMap();
 				// connection to IfShare service
 				String ip = Inet4Address.getLocalHost().getHostAddress();
@@ -58,24 +58,22 @@ public class MainClient {
 				List<IProduct> products = service.getAllProduct();
 				System.out.println("Here are all the products : ");
 				for(IProduct p : products) {
-					// TODO to delete
-					p.setAvailable(true);
 					System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable());
 				}
 							
-				System.out.println("//////////////////////////////////////");
-				// TODO
-				// verify bank account
+				System.out.println("");
 				
 				// buy a product
-				System.out.println("Place your order");
+				System.out.println("Please, place your order");
 				placeOrder(service, products);
 								
 				// Option menu
 				optionMenu("buy", service, products);
 				
+				System.out.println("Thank you for your purchase! \n");
+				
 			    // the client's products he bought
-				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+				System.out.println("The list of purchased products");
 				for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
 					IEmploye key = e.getKey();
 					List<IProduct> lp =e.getValue();
@@ -85,14 +83,15 @@ public class MainClient {
 					}
 				}
 				
+				System.out.println();
 				System.out.println("/////////////////////////////");
 				sellProduct(service);
 				// Option menu
-				// TODO offer the option only when the buyMap is not empty
 				optionMenu("sell", service, products);
+				System.out.println("You finished selling products \n");
 				
 				// the client's bought product list
-				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+				System.out.println("The updated list of purchased products");
 				for(Entry<IEmploye, List<IProduct>> e : buyMap.entrySet()) {
 					IEmploye key = e.getKey();
 					List<IProduct> lp =e.getValue();
@@ -102,9 +101,9 @@ public class MainClient {
 					}
 				}
 				
-				System.out.println("**********************************");
+				System.out.println("\n**********************************");
 				// get all the products from IfShare
-				System.out.println("Here are all the products : ");
+				System.out.println("here is our products' history");
 				for(IProduct p : products) {
 					System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable() + " note: " + p.getNote() + " state: " + p.getState());
 				}
@@ -113,7 +112,6 @@ public class MainClient {
 			}
 			
 		} catch (RemoteException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}		
 	}
@@ -139,7 +137,7 @@ public class MainClient {
 		boolean keepGoing = true;
 		int response = 0;
 		while (keepGoing) {
-	    	System.out.println("Please select an option from the menu:");
+	    	System.out.println("\nPlease select an option from the menu:");
 		    System.out.println("1. Continue");
 		    System.out.println("2. Finish");
 			Scanner scanner = new Scanner(System.in);
@@ -163,7 +161,7 @@ public class MainClient {
 	}
 	
 	public static void placeOrder(IIfShare service, List<IProduct> products) throws RemoteException {
-		System.out.println("Please select the product's id that you want to sell");
+		System.out.println("\nSelect the product's id that you want to buy");
 		Scanner scanner = new Scanner(System.in) ;
 		String id = scanner.nextLine();
 		buyProduct(id, service, products);
@@ -204,21 +202,23 @@ public class MainClient {
 		System.out.println("Please select the product's id that you want to sell");
 		Scanner scanner = new Scanner(System.in);
 		String idProduct = scanner.nextLine();
-		System.out.println("Give a rating to this product between 0 to 5");
-		scanner = new Scanner(System.in);
-		float note = scanner.nextFloat();
-		System.out.println("What is the state of this product?");
-		scanner = new Scanner(System.in);
-		String state = scanner.nextLine();
-		System.out.println("How much are you selling this product?");
-		scanner = new Scanner(System.in);
-		float price = scanner.nextFloat();
-		IProduct p = service.sellProduct(idProduct, note, state, price);
-		if (p != null) {
-			// remove the sold product from the client's list
-			buyMap.get(employee).remove(p);
+		if (buyMap.containsKey(idProduct)) {
+			System.out.println("Give a rating to this product between 0 to 5");
+			scanner = new Scanner(System.in);
+			float note = scanner.nextFloat();
+			System.out.println("What is the state of this product?");
+			scanner = new Scanner(System.in);
+			String state = scanner.nextLine();
+			System.out.println("How much are you selling this product?");
+			scanner = new Scanner(System.in);
+			float price = scanner.nextFloat();
+			IProduct p = service.sellProduct(idProduct, note, state, price);
+			if (p != null) {
+				// remove the sold product from the client's list
+				buyMap.get(employee).remove(p);
+			}
 		} else {
-			System.out.println("Couldn't sell this product!");
+			System.out.println("You don't own this product!");
 		}
 	}
 	}
