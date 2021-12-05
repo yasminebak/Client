@@ -7,6 +7,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -14,7 +15,6 @@ import java.util.Map.Entry;
 
 import Common.IEmploye;
 import Common.IIfShare;
-import Common.IManageEmployes;
 import Common.IProduct;
 
 public class MainClient {
@@ -107,8 +107,7 @@ public class MainClient {
 				for(IProduct p : products) {
 					System.out.println("Id Product: " + p.getId() + " type: " + p.getType() + " name: " + p.getName() + " price: " + p.getPrice() + " availible: " + p.isAvailable() + " note: " + p.getNote() + " state: " + p.getState());
 				}
-				
-				service.setFifo();
+		
 			}
 			
 		} catch (RemoteException e1) {
@@ -202,7 +201,15 @@ public class MainClient {
 		System.out.println("Please select the product's id that you want to sell");
 		Scanner scanner = new Scanner(System.in);
 		String idProduct = scanner.nextLine();
-		if (buyMap.containsKey(idProduct)) {
+		List<IProduct> list = buyMap.get(employee);
+		boolean exist = false;
+		for(IProduct product : list) {
+			if (product.getId().equals(idProduct)) {
+				exist = true;
+			}
+		}
+		
+		if (exist) {
 			System.out.println("Give a rating to this product between 0 to 5");
 			scanner = new Scanner(System.in);
 			float note = scanner.nextFloat();
@@ -216,6 +223,7 @@ public class MainClient {
 			if (p != null) {
 				// remove the sold product from the client's list
 				buyMap.get(employee).remove(p);
+				System.out.println("you sold the product");
 			}
 		} else {
 			System.out.println("You don't own this product!");
